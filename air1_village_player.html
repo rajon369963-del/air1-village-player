@@ -159,6 +159,7 @@ function mySwot(){
   const total = log.length, correct = log.filter(a=>a.ok).length;
   card.innerHTML = `<div class="stage-tag">Guru Memory · SWOT</div>
     ${struggle ? `<div style="background:#1c1327;border:1px solid #bc8cff;border-radius:10px;padding:10px;margin-top:8px"><span style="color:#bc8cff;font-weight:600">🔥 TOP STRUGGLE:</span> ${esc(struggle.t)}  — Bharat bhar ke students bhi yahan atakte hain. Guru ka plan: reel dekho → quiz do → guru clip → mastery. Tum nahi haraoge.</div>` : ""}
+    ${(() => { const s=__streakDays(); return s>0 ? `<p style="margin-top:10px;font-size:.95rem;font-weight:600">🔥 <span style="color:#ff9f0a">${s}-DAY STREAK!</span> ${s>=7?"Tu to guru ban raha hai 🔩":s>=3?"Shabaash! Chalte reh":"Aaj phir se aaja, streak mat tod"} </p>` : ""; })()}
     <p style="margin-top:8px;font-size:.9rem">Guru ne tere <b>${total}</b> attempts yaad hain — ${correct} sahi (${Math.round(100*correct/total)}%).</p>
     <h2 style="font-size:.95rem;margin-top:10px;color:var(--ok)">💪 Strong</h2>
     ${strong.length ? strong.map(r=>`<p style="font-size:.85rem">${esc(r.t)} — ${r.pct}% (${r.n})</p>`).join('') : '<p class="mut" style="font-size:.85rem">abhi kuch strong nahi — practice chalu rakho.</p>'}
@@ -258,6 +259,20 @@ function importMemoryQR(payloadStr){
   } catch(e) {
     alert("Ye guru-memory QR nahi lag raha. Dobara try karo.");
   }
+}
+
+
+function __streakDays(){
+  // deterministic day-streak from attempts (local dates, no server)
+  let log = [];
+  try { log = JSON.parse(localStorage.getItem("air1_attempts") || "[]"); } catch(e) {}
+  const days = new Set(log.map(a => new Date(a.ts||Date.now()).toDateString()));
+  let streak = 0;
+  const d = new Date();
+  // today counts if studied today; else start from yesterday
+  if (!days.has(d.toDateString())) d.setDate(d.getDate()-1);
+  while (days.has(d.toDateString())) { streak++; d.setDate(d.getDate()-1); }
+  return streak;
 }
 
 function exportMemoryQR(){
