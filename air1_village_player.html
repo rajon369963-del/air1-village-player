@@ -313,7 +313,7 @@ function exportMemoryQR(){
   }
 }
 
-const COMMUNITY_WEAKPOINTS = [{"topic": "Chemistry", "count": 44825}, {"topic": "Permutations", "count": 4}, {"topic": "Linear Algebra", "count": 12}, {"topic": "Relativistic Electrodynamics", "count": 3}, {"topic": "Polity", "count": 3}, {"topic": "Optimization Techniques", "count": 2}];
+const COMMUNITY_WEAKPOINTS = [{"topic": "Chemical Reactions", "count": 7247}, {"topic": "Acids & Bases", "count": 4602}, {"topic": "Stoichiometry", "count": 4206}, {"topic": "Electron Structure", "count": 2755}, {"topic": "Solutions", "count": 2533}, {"topic": "Chemical Bonding", "count": 1701}];
 function findMinedClip(topic){
   if (typeof MINED_CLIPS === 'undefined') return null;
   const words = topic.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 4);
