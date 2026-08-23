@@ -275,6 +275,18 @@ function __streakDays(){
   return streak;
 }
 
+
+async function shareReel(){
+  // VIRAL LOOP: bachcha reel share karega -> naya student aayega (social media law)
+  const r = (typeof AIR1_REELS !== "undefined" && AIR1_REELS[__reelIdx]) ? AIR1_REELS[__reelIdx] : null;
+  const text = r ? ("AIR1 Village Player se padh raha hoon! \u{1F525} " + (r.hook||r.title||"Aaj ka concept")
+    + " \u2014 tum bhi try karo: https://rajon369963-del.github.io/air1-village-player/")
+    : "AIR1 Village Player \u2014 reels se padhai, bilkul free: https://rajon369963-del.github.io/air1-village-player/";
+  if (navigator.share) { try { await navigator.share({title:"AIR1 Village Player", text}); return; } catch(e){} }
+  try { await navigator.clipboard.writeText(text); alert("Copy ho gaya! Dosto ko bhej do \u{1F4E8}"); }
+  catch(e) { prompt("Ye link dosto ko bhejo:", text); }
+}
+
 function exportMemoryQR(){
   // GURU-SHISHYA MEMORY EXPORT: phone-to-phone, offline, no internet needed
   let log = [];
@@ -414,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div style="display:flex;gap:6px">
       <button class="green" style="flex:2" onclick="nextReel()">🎬 REEL LOOP</button>
       <button style="flex:1;background:#21262d" onclick="mySwot()">
+      <button style="flex:1;background:#21262d" onclick="shareReel()">
   <button style="flex:1;background:#21262d" onclick="exportMemoryQR()">🧠 Guru Memory</button>
     </div>`;
   document.getElementById('loader').after(bar);
