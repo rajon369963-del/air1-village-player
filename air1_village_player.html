@@ -143,6 +143,12 @@ function mySwot(){
   const rows = Object.entries(by).map(([t, oks]) => ({
     t, n: oks.length, pct: Math.round(100 * oks.filter(Boolean).length / oks.length)
   })).sort((a,b) => a.pct - b.pct);
+  // FSRS-lite: next-revision day = last-correct day + interval (1/3/7 by mastery tier)
+  const today = new Date().toISOString().slice(0,10);
+  const due = {};
+  log.forEach(a => { if (a.ok && a.t) { due[a.t] = a.ts.slice(0,10); } });
+  const intervalFor = (pct) => pct >= 80 ? 7 : pct >= 50 ? 3 : 1;
+  const addDays = (d, n) => new Date(new Date(d).getTime() + n*864e5).toISOString().slice(0,10);
   const strong = rows.filter(r => r.pct >= 70).slice(0,5);
   const weak = rows.filter(r => r.pct < 70).slice(0,8);
   const total = log.length, correct = log.filter(a=>a.ok).length;
@@ -151,7 +157,7 @@ function mySwot(){
     <h2 style="font-size:.95rem;margin-top:10px;color:var(--ok)">💪 Strong</h2>
     ${strong.length ? strong.map(r=>`<p style="font-size:.85rem">${esc(r.t)} — ${r.pct}% (${r.n})</p>`).join('') : '<p class="mut" style="font-size:.85rem">abhi kuch strong nahi — practice chalu rakho.</p>'}
     <h2 style="font-size:.95rem;margin-top:10px;color:#f85149">🎯 Weak (guru yahan focus karwayega)</h2>
-    ${weak.length ? weak.map(r=>`<p style="font-size:.85rem">${esc(r.t)} — ${r.pct}% (${r.n}) <button style="padding:4px 8px;font-size:.75rem;margin-left:6px" onclick="nextReel()">reel se clear karo</button></p>`).join('') : '<p class="mut" style="font-size:.85rem">koi weak point nahi — guru proud hai 🎉</p>'}
+    ${weak.length ? weak.map(r=>`<p style="font-size:.85rem">${esc(r.t)} — ${r.pct}% (${r.n}) ${due[r.t] && addDays(due[r.t], intervalFor(r.pct)) <= today ? '<span style="color:#f85149;font-size:.75rem">⏰ revision due!</span>' : ''}<button style="padding:4px 8px;font-size:.75rem;margin-left:6px" onclick="nextReel()">reel se clear karo</button></p>`).join('') : '<p class="mut" style="font-size:.85rem">koi weak point nahi — guru proud hai 🎉</p>'}
     <h2 style="font-size:.95rem;margin-top:12px;color:var(--acc)">🌍 Bharat bhar ke students yahan atakte hain</h2>${(typeof COMMUNITY_WEAKPOINTS!=="undefined"?COMMUNITY_WEAKPOINTS.slice(0,4):[]).map(w=>`<p style="font-size:.85rem">${esc(w.topic)} — ${w.count} doubts <span class="mut">(tum akele nahi ho)</span></p>`).join("")}
     <button class="green" style="width:100%;margin-top:12px" onclick="exportProgress()">📥 Progress Export (offline sync)</button>`;
 }
