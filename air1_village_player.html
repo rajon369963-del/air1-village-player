@@ -244,9 +244,32 @@ function findMinedClip(topic){
 
 let __reelIdx = -1;
 
+function __pickNextReel(){
+  // deterministic weakness-first recommendation (no LLM):
+  // score = personalMastery(r.topic)*2 + communityWeaknessBonus + unseenBoost
+  let log = [];
+  try { log = JSON.parse(localStorage.getItem("air1_attempts") || "[]"); } catch(e) {}
+  const byT = {};
+  log.forEach(a => { (byT[(a.t||"").toLowerCase()] = byT[(a.t||"").toLowerCase()] || []).push(a.ok); });
+  const cwWords = (typeof COMMUNITY_WEAKPOINTS !== "undefined" ? COMMUNITY_WEAKPOINTS : [])
+    .map(w => w.topic.toLowerCase().split(" ")[0]);
+  let best = -1, bestScore = -Infinity;
+  for (let i = 0; i < AIR1_REELS.length; i++){
+    const t = (AIR1_REELS[i].topic || "").toLowerCase();
+    const key = Object.keys(byT).find(k => t.includes(k.slice(0,18)) || k.includes(t.slice(0,18)));
+    const oks = key ? byT[key] : [];
+    const mastery = oks.length ? Math.round(100 * oks.filter(Boolean).length / oks.length) : 50;
+    let score = (100 - mastery) * 2;               // weaker topic = higher priority
+    if (!oks.length) score += 30;                  // unseen topics get a fair shot
+    if (cwWords.some(w => t.includes(w))) score += 15;  // community struggle bonus
+    if (i === __reelIdx) score -= 1000;            // never repeat current
+    if (score > bestScore){ bestScore = score; best = i; }
+  }
+  return best >= 0 ? best : ((__reelIdx + 1) % AIR1_REELS.length);
+}
 function nextReel(){
   if (typeof AIR1_REELS === 'undefined' || !AIR1_REELS.length) return;
-  __reelIdx = (__reelIdx + 1) % AIR1_REELS.length;
+  __reelIdx = __pickNextReel();
   const r = AIR1_REELS[__reelIdx];
   const m = REEL_TEACHER_MAP[r.topic] || {};
   document.getElementById('loader').classList.add('hidden');
