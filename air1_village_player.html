@@ -116,8 +116,54 @@ function genQuiz(n){
   qb.innerHTML = h;
 }
 let __score = 0, __total = 0;
+// GURU-SHISHYA MEMORY (canon v2): har attempt yaad — guru shishya ko kabhi nahi bhoolta.
+function remember(topic, ok){
+  try {
+    const log = JSON.parse(localStorage.getItem('air1_attempts') || '[]');
+    log.push({t: topic.slice(0,80), ok: ok?1:0, ts: new Date().toISOString()});
+    if (log.length > 2000) log.splice(0, log.length - 2000);
+    localStorage.setItem('air1_attempts', JSON.stringify(log));
+  } catch(e) {}
+}
+function mySwot(){
+  // Guru ka swot view: topic-wise mastery + weak points
+  let log = [];
+  try { log = JSON.parse(localStorage.getItem('air1_attempts') || '[]'); } catch(e) {}
+  const card = document.getElementById('lesson');
+  ['quiz','attrib'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById('loader').classList.add('hidden');
+  card.classList.remove('hidden');
+  if (!log.length){
+    card.innerHTML = `<div class="stage-tag">Guru Memory</div>
+      <p style="margin-top:10px">🧠 Guru ne abhi kuch nahi dekha — pehle reel quiz do, phir yahan tera SWOT dikhega.</p>`;
+    return;
+  }
+  const by = {};
+  log.forEach(a => { (by[a.t] = by[a.t] || []).push(a.ok); });
+  const rows = Object.entries(by).map(([t, oks]) => ({
+    t, n: oks.length, pct: Math.round(100 * oks.filter(Boolean).length / oks.length)
+  })).sort((a,b) => a.pct - b.pct);
+  const strong = rows.filter(r => r.pct >= 70).slice(0,5);
+  const weak = rows.filter(r => r.pct < 70).slice(0,8);
+  const total = log.length, correct = log.filter(a=>a.ok).length;
+  card.innerHTML = `<div class="stage-tag">Guru Memory · SWOT</div>
+    <p style="margin-top:8px;font-size:.9rem">Guru ne tere <b>${total}</b> attempts yaad hain — ${correct} sahi (${Math.round(100*correct/total)}%).</p>
+    <h2 style="font-size:.95rem;margin-top:10px;color:var(--ok)">💪 Strong</h2>
+    ${strong.length ? strong.map(r=>`<p style="font-size:.85rem">${esc(r.t)} — ${r.pct}% (${r.n})</p>`).join('') : '<p class="mut" style="font-size:.85rem">abhi kuch strong nahi — practice chalu rakho.</p>'}
+    <h2 style="font-size:.95rem;margin-top:10px;color:#f85149">🎯 Weak (guru yahan focus karwayega)</h2>
+    ${weak.length ? weak.map(r=>`<p style="font-size:.85rem">${esc(r.t)} — ${r.pct}% (${r.n}) <button style="padding:4px 8px;font-size:.75rem;margin-left:6px" onclick="nextReel()">reel se clear karo</button></p>`).join('') : '<p class="mut" style="font-size:.85rem">koi weak point nahi — guru proud hai 🎉</p>'}
+    <button class="green" style="width:100%;margin-top:12px" onclick="exportProgress()">📥 Progress Export (offline sync)</button>`;
+}
+function exportProgress(){
+  const blob = new Blob([localStorage.getItem('air1_attempts') || '[]'], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'air1_progress.json';
+  a.click();
+}
 function ans(btn, ok){
   btn.classList.add(ok?'right':'wrong');
+  remember(PACK.topic, ok); // guru memory: har attempt yaad
   // reveal why-line: next sibling, or sibling after option group (why follows last option)
   let el = btn.nextElementSibling;
   while (el) {
@@ -213,6 +259,7 @@ function startReelQuiz(){
 
 function reelAns(btn, ok, topic){
   btn.classList.add(ok?'right':'wrong');
+  remember(topic, ok); // guru memory: reel attempt yaad
   const s = document.getElementById('score');
   if (ok){
     s.textContent = '✅ Sahi! Dopamine unlock — agla reel?';
@@ -243,7 +290,10 @@ document.addEventListener('DOMContentLoaded', () => {
   bar.className = 'card';
   bar.innerHTML = `<div class="stage-tag">Reel Loop — social learning mode</div>
     <p style="font-size:.85rem;color:var(--mut);margin:4px 0 8px">TikTok jaisa addictive — but padhai ke liye.</p>
-    <button class="green" style="width:100%" onclick="nextReel()">🎬 REEL LOOP SHURU KARO</button>`;
+    <div style="display:flex;gap:6px">
+      <button class="green" style="flex:2" onclick="nextReel()">🎬 REEL LOOP</button>
+      <button style="flex:1;background:#21262d" onclick="mySwot()">🧠 Guru Memory</button>
+    </div>`;
   document.getElementById('loader').after(bar);
 });
 </script>
