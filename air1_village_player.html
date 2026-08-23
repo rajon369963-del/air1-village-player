@@ -234,6 +234,32 @@ const MINED_CLIPS = [{"label": "Intro", "start_sec": 0, "video": "https://youtub
 <script src="air1_qr_20260823.js"></script>
 <script>
 
+
+function importMemoryQR(payloadStr){
+  // GURU MEMORY IMPORT: merge scanned/pasted payload into this device (deterministic)
+  try {
+    const d = JSON.parse((payloadStr||"").trim());
+    if (!d || d.v !== 1 || !d.gm) throw 0;
+    let log = [];
+    try { log = JSON.parse(localStorage.getItem("air1_attempts") || "[]"); } catch(e) {}
+    const byT = {};
+    log.forEach(a => { const k=(a.t||"").toLowerCase(); if(!k) return;
+      (byT[k] = byT[k] || [0,0]); byT[k][0]++; if(a.ok) byT[k][1]++; });
+    for (const [t, ac] of Object.entries(d.gm)) {
+      const cur = byT[t] || [0,0];
+      // merge rule: MAX attempts & MAX corrects per topic (conservative, no double-count)
+      byT[t] = [Math.max(cur[0], ac[0]), Math.max(cur[1], ac[1])];
+    }
+    const merged = [];
+    for (const [t, ac] of Object.entries(byT))
+      for (let i=0;i<ac[0];i++) merged.push({t, ok: i < ac[1], ts: Date.now()});
+    localStorage.setItem("air1_attempts", JSON.stringify(merged));
+    alert("Guru ne yaad rakh liya! " + Object.keys(d.gm).length + " topics merge hue.");
+  } catch(e) {
+    alert("Ye guru-memory QR nahi lag raha. Dobara try karo.");
+  }
+}
+
 function exportMemoryQR(){
   // GURU-SHISHYA MEMORY EXPORT: phone-to-phone, offline, no internet needed
   let log = [];
@@ -251,7 +277,7 @@ function exportMemoryQR(){
   ov.style.cssText = "position:fixed;inset:0;background:#000d;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px";
   ov.innerHTML = '<div style="background:#fff;padding:16px;border-radius:12px"><div id="gmqr"></div></div>'
     + '<p style="color:#fff;font-size:.9rem;text-align:center">Dusre phone se scan karo — guru ki yaad wahan bhi chalegi.<br>' + log.length + ' attempts · ' + entries.length + ' topics</p>'
-    + '<button onclick="this.parentElement.remove()" style="padding:8px 18px;border-radius:8px;border:0;background:#bc8cff;color:#fff;font-weight:600">Band karo</button>';
+    + '<button onclick="this.parentElement.remove()" style="padding:8px 18px;border-radius:8px;border:0;background:#bc8cff;color:#fff;font-weight:600">Band karo</button><button onclick="const s=prompt('Doste ka memory code yahan paste karo:'); if(s) importMemoryQR(s)" style="padding:8px 18px;border-radius:8px;border:1px solid #bc8cff;background:transparent;color:#bc8cff;font-weight:600">Dost ka memory import karo</button>';
   document.body.appendChild(ov);
   if (typeof QRCode !== "undefined") {
     new QRCode(ov.querySelector("#gmqr"), {text: js, width: 280, height: 280, correctLevel: QRCode.CorrectLevel.M});
