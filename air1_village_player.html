@@ -313,7 +313,7 @@ function exportMemoryQR(){
   }
 }
 
-const COMMUNITY_WEAKPOINTS = [{"topic": "Permutations", "count": 4}, {"topic": "Linear Algebra", "count": 4}, {"topic": "Relativistic Electrodynamics", "count": 3}, {"topic": "Polity", "count": 3}, {"topic": "Optimization Techniques", "count": 2}, {"topic": "Lagrangian Mechanics", "count": 2}];
+const COMMUNITY_WEAKPOINTS = [{"topic": "Chemistry", "count": 44825}, {"topic": "Permutations", "count": 4}, {"topic": "Linear Algebra", "count": 12}, {"topic": "Relativistic Electrodynamics", "count": 3}, {"topic": "Polity", "count": 3}, {"topic": "Optimization Techniques", "count": 2}];
 function findMinedClip(topic){
   if (typeof MINED_CLIPS === 'undefined') return null;
   const words = topic.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 4);
